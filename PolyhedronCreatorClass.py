@@ -3,7 +3,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import sympy
 import math
-from enum import Enum
 
 class PolyhedronCreator:
 
@@ -34,7 +33,7 @@ class PolyhedronCreator:
     
     
     def creatIcosahedrons(self,x,y,z,r,s):
-
+        '''center = (x,y,z), radius = r, vertices = s(12/42/162)'''
         #若正二十面体的中心为(0,0,0)，外接球半径为1，各顶点的坐标为{(±m,0,±n), (0,±n,±m), (±n,±m,0)}
         #这样初始化正二十面体，1号点周围是一个六角形
 
@@ -57,7 +56,7 @@ class PolyhedronCreator:
         self.__scale__(r)
 
         #3.八十面体额外需要取棱的中点
-        if(s == 2):
+        if(s == 162):
             self.__additional__()
 
         #4.加编号标签
@@ -73,12 +72,12 @@ class PolyhedronCreator:
         #球的棱长a和半径r的关系
         a = round(4 / (pow(10+2*pow(5,0.5),0.5)),3)
 
-        if (s == 1):
+        if (s == 12):
             print("创建正二十面体")
 
-        if(s == 2):
+        if(s == 162):
             
-            print("创建八十面体")
+            print("创建多顶点八十面体")
 
             #取二十面体的所有棱的中点
             for i in range(12):
@@ -263,7 +262,7 @@ class PolyhedronCreator:
         # print(self.y_label[1:6])
 
 
-        if(s == 1):
+        if(s == 12):
             self.x_label = self.x_scaled.copy()
             self.y_label = self.y_scaled.copy()
             self.z_label = self.z_scaled.copy()
@@ -273,7 +272,7 @@ class PolyhedronCreator:
             self.z_label.reverse()
         
 
-        if(s == 2):
+        if(s == 162):
 
             #接下来分层利用角度进行排序
             #a×b表示从a旋转到b，叉乘得到的向量中，z值正表示逆时针，z值负表示顺时针
@@ -434,4 +433,4 @@ class PolyhedronCreator:
 
 
 poly = PolyhedronCreator()
-poly.creatIcosahedrons(0,0,0,2,2)
+poly.creatIcosahedrons(0,0,0,2,162)
