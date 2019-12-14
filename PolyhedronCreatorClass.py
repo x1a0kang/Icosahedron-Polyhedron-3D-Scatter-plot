@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import sympy
 import math
+import time
 
 class PolyhedronCreator:
 
@@ -44,10 +45,22 @@ class PolyhedronCreator:
         # self.y_init=[0,0,0,0,n,n,-n,-n,m,-m,m,-m]
         # self.z_init=[n,-n,n,-n,m,-m,m,-m,0,0,0,0]
 
+        print("start...")
+        whole_time_start = time.time()
+
         #这样初始化正二十面体，1号点周围是一个五角形，和搭建的球相同
         self.x_init=[0.0, 0.7236068248748779, -0.27639326453208923, -0.8944272994995117, -0.2763932943344116, 0.7236067652702332, 0.8944272994995117, 0.27639317512512207, -0.7236068844795227, -0.7236067652702332, 0.276393324136734, 0.0]
         self.y_init=[0.0, 0.525731086730957, 0.8506509065628052, -7.819331671043983e-08, -0.8506507873535156, -0.5257311463356018, 0.0, 0.8506508469581604, 0.525731086730957, -0.5257312059402466, -0.8506507873535156, 0.0]
         self.z_init=[-1.0, -0.4472135901451111, -0.44721364974975586, -0.44721364974975586, -0.4472135901451111, -0.4472135901451111, 0.44721364974975586, 0.4472135901451111, 0.44721364974975586, 0.4472135901451111, 0.4472135901451111, 1.0]
+
+        
+        if (s == 12):
+            print("创建正二十面体")
+        elif(s == 42):
+            print("创建42顶点八十面体")
+        elif(s == 162):
+            print("创建162顶点八十面体")
+
 
         #1.分段
         self.__split__(s)
@@ -63,21 +76,23 @@ class PolyhedronCreator:
         self.__label__(s)
 
         #5.移动至设定的球心
-        self.__move__(x,y,z)
+        self.__move_draw__(x,y,z)
 
-        
+        whole_time_end = time.time()
+        print("总时间为：", round(whole_time_end-whole_time_start,2), "s")
+
         
     def __split__(self,s):
         
+        print("split start...")
+        time_split_start = time.time()
+
         #球的棱长a和半径r的关系
         a = round(4 / (pow(10+2*pow(5,0.5),0.5)),3)
 
-        if (s == 12):
-            print("创建正二十面体")
 
-        if(s == 162):
+        if(s == 162 or s == 42):
             
-            print("创建多顶点八十面体")
 
             #取二十面体的所有棱的中点
             for i in range(12):
@@ -92,8 +107,14 @@ class PolyhedronCreator:
 
             #print("取棱的中点",len(self.x_init))
 
+        time_split_end = time.time()
+        print("split时间为：", round(time_split_end-time_split_start,2), "s")
+
 
     def __scale__(self,r):
+
+        print("scale start...")
+        time_scale_start = time.time()
 
         #求出球心与各个点的连线的方程和外接球的方程，得到交点
         x = sympy.Symbol('x')
@@ -200,9 +221,16 @@ class PolyhedronCreator:
     
         #print("拉伸到外界球上42",len(self.x_scaled))
 
+        time_scale_end = time.time()
+        print("scale时间为：", round(time_scale_end-time_scale_start,2), "s")
+
+
 
     def __additional__(self):
         
+        print("additional start...")
+        time_additional_start = time.time()
+
         temp_list = []
         #取八十面体的所有棱的中点，不取的话只有42个顶点，取了中点是162个点
         #计算所有点之间的距离，放在一个数组里，最小的两个距离就是八十面体的两种棱长
@@ -233,8 +261,14 @@ class PolyhedronCreator:
         
         #print(len(self.x_plus))
 
+        time_additional_end = time.time()
+        print("additional时间为：", round(time_additional_end-time_additional_start,2), "s")
+
 
     def __label__(self,s):
+        
+        print("label start...")
+        time_label_start = time.time()
         
         self.x_label = self.x_scaled + self.x_plus
         self.y_label = self.y_scaled + self.y_plus
@@ -263,6 +297,9 @@ class PolyhedronCreator:
 
 
         if(s == 12):
+            
+            print("label 12...")
+            
             self.x_label = self.x_scaled.copy()
             self.y_label = self.y_scaled.copy()
             self.z_label = self.z_scaled.copy()
@@ -271,8 +308,93 @@ class PolyhedronCreator:
             self.y_label.reverse()
             self.z_label.reverse()
         
+        if(s == 42):
+            
+            print("label 42...")
+
+            angle_all = []
+            layer1_angle = []
+            layer2_angle = []
+            layer3_angle = []
+            layer4_angle = []
+            layer5_angle = []
+
+            for i in range(1,len(self.x_label)-1):
+                #layer1.append([self.x_label[i],self.y_label[i],self.z_label[i]])
+                #两向量
+                vector_x = [1,0,0]
+                vector_temp = [self.x_label[i],self.y_label[i],0]
+                #点乘和叉乘算角度
+                angle = math.acos(np.dot(vector_x,vector_temp)/(np.linalg.norm(vector_x)*np.linalg.norm(vector_temp)))
+                normal = np.cross(vector_x,vector_temp)[2]
+                if(normal > 0):
+                    angle = 2*math.pi - angle
+                # elif(normal == 0):
+                #     print("叉乘后z轴值为零", i)
+
+                #这里不包括第一个点和最后一个点，所有只有160个值
+                angle_all.append(angle)
+                
+            #print((angle_all))
+
+            layer1_angle = angle_all[:5]
+            layer1_angle = enumerate(layer1_angle,start=1)
+            layer1_angle = sorted(layer1_angle, key=lambda x:x[1])
+            #print(len(layer1_angle))
+            #print(layer1_angle)
+
+            layer2_angle = angle_all[5:15]
+            layer2_angle = enumerate(layer2_angle,start=6)
+            layer2_angle = sorted(layer2_angle, key=lambda x:x[1])
+            #print(len(layer2_angle))
+            #print(layer2_angle)
+
+            layer3_angle = angle_all[15:25]
+            layer3_angle = enumerate(layer3_angle,start=16)
+            layer3_angle = sorted(layer3_angle, key=lambda x:x[1])
+            #print(len(layer3_angle))
+            #print(layer3_angle)
+
+            layer4_angle = angle_all[25:35]
+            layer4_angle = enumerate(layer4_angle,start=26)
+            layer4_angle = sorted(layer4_angle, key=lambda x:x[1])
+            #print(len(layer4_angle))
+            #print(layer4_angle)
+
+            layer5_angle = angle_all[35:40]
+            layer5_angle = enumerate(layer5_angle,start=36)
+            layer5_angle = sorted(layer5_angle, key=lambda x:x[1])
+            #print(len(layer5_angle))
+            #print(layer5_angle)
+
+            angle_all.clear()
+            angle_all = layer1_angle+layer2_angle+layer3_angle+layer4_angle+layer5_angle
+
+            x_moved_sorted.clear()
+            y_moved_sorted.clear()
+            z_moved_sorted.clear()
+
+            x_moved_sorted.append(self.x_label[0])
+            y_moved_sorted.append(self.y_label[0])
+            z_moved_sorted.append(self.z_label[0])
+
+            for i in range(len(angle_all)):
+                x_moved_sorted.append(self.x_label[angle_all[i][0]])
+                y_moved_sorted.append(self.y_label[angle_all[i][0]])
+                z_moved_sorted.append(self.z_label[angle_all[i][0]])
+
+            x_moved_sorted.append(self.x_label[41])
+            y_moved_sorted.append(self.y_label[41])
+            z_moved_sorted.append(self.z_label[41])
+
+            self.x_label = x_moved_sorted.copy()
+            self.y_label = y_moved_sorted.copy()
+            self.z_label = z_moved_sorted.copy()
+
 
         if(s == 162):
+
+            print("label 162...")
 
             #接下来分层利用角度进行排序
             #a×b表示从a旋转到b，叉乘得到的向量中，z值正表示逆时针，z值负表示顺时针
@@ -307,6 +429,8 @@ class PolyhedronCreator:
                 #这里不包括第一个点和最后一个点，所有只有160个值
                 angle_all.append(angle)
             
+            #print((angle_all))
+
             #print(len(angle_all))
 
             layer1_angle = angle_all[:5]
@@ -407,9 +531,16 @@ class PolyhedronCreator:
             self.y_label[i]=float(self.y_label[i])
             self.z_label[i]=float(self.z_label[i])
 
+        
+        time_label_end = time.time()
+        print("label时间为：", round(time_label_end-time_label_start,2), "s")
 
-    def __move__(self,x,y,z):
 
+    def __move_draw__(self,x,y,z):
+
+        print("move start...")
+        time_move_start = time.time()
+        
         self.x_moved = np.array([x]*len(self.x_label))+np.array(self.x_label)
         self.y_moved = np.array([y]*len(self.y_label))+np.array(self.y_label)
         self.z_moved = np.array([z]*len(self.z_label))+np.array(self.z_label)
@@ -428,9 +559,13 @@ class PolyhedronCreator:
         for i in range(len(self.x_moved)):
             ax.text(x=self.x_moved[i],y=self.y_moved[i],z=self.z_moved[i],s=i+1,fontsize=8)
 
+        
+        time_move_end = time.time()
+        print("move_draw时间为：", round(time_move_end-time_move_start,2), "s")
+
+
         plt.show()
 
 
-
 poly = PolyhedronCreator()
-poly.creatIcosahedrons(0,0,0,2,162)
+poly.creatIcosahedrons(0,0,0,2,42)
